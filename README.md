@@ -4,10 +4,12 @@ Project to analyse IATA Annual Reviews to identify trends and opportunities in t
 
 ## Structure
 
-- `notebooks/`: Interactive walkthrough with visualisations
-- `src/`: Reusable scripts for data extraction and helper scripts
 - `data/`: Raw input and processed output
 - `environment.yml`: Conda environment for reproducibility
+- `models/`: Store BERTopic models
+- `notebooks/`: Interactive walkthrough with visualisations
+- `src/`: Reusable scripts for data extraction and helper scripts
+- `outputs/`: Plots and other analysis outputs
 
 ## Quick start
 
