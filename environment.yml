@@ -20,9 +20,7 @@ dependencies:
   - seaborn
   - pip
   - pip:
-      - spacy
       - pdfminer.six
-      - pymupdf
       - bertopic
       - sentence-transformers
       - "thinc<8.2.1"    # Prevents torch/Numpy2 dependency
@@ -30,4 +28,6 @@ dependencies:
       - kaleido
       - nbformat>=4.2.0
       - ipywidgets
-
+      - faiss-cpu
+      - transformers
+      - torch

@@ -8,7 +8,7 @@ Project to analyse IATA Annual Reviews to identify trends and opportunities in t
 - `environment.yml`: Conda environment for reproducibility
 - `models/`: Store BERTopic models
 - `notebooks/`: Interactive walkthrough with visualisations
-- `src/`: Reusable scripts for data extraction and helper scripts
+- `src/`: Reusable scripts for data extraction and helper scripts in utils
 - `outputs/`: Plots and other analysis outputs
 
 ## Quick start
@@ -21,7 +21,6 @@ Project to analyse IATA Annual Reviews to identify trends and opportunities in t
 conda env create -f environment.yml
 conda activate iata
 python -m spacy download en_core_web_sm # download and install the small English language model "en_core_web_sm"
-mkdir data output models
 ```
 
 ###### Subsequent times
