@@ -1,6 +1,0 @@
-{
-    "python.pythonPath": "/Users/katharine/anaconda3/envs/iata/bin/python",
-    "python.analysis.extraPaths": ["./src"],
-    "python.analysis.typeCheckingMode": "off"
-  }
-  
