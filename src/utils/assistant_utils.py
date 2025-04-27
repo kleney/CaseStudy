@@ -9,7 +9,7 @@ import faiss
 import numpy as np
 from tqdm import tqdm
 from transformers import pipeline
-from assistant_config import CHUNKS_FILE, INDEX_FILE, TEXTS_FILE
+from assistant_config import CHUNKS_FILE, INDEX_FILE, TEXTS_FILE, SUMMARISER_MODEL
 
 
 # --------------------------------------------------
@@ -82,7 +82,7 @@ def load_or_build_index(model, force_rebuild=False):
 # for condensing retrieved texts
 # --------------------------------------------------
 def load_summariser():
-    summariser = pipeline("summarization", model="t5-small", tokenizer="t5-small", framework="pt")
+    summariser = pipeline("summarization", model=SUMMARISER_MODEL, tokenizer=SUMMARISER_MODEL, framework="pt")
     return summariser
 
 

@@ -27,13 +27,13 @@ TEXTS_FILE = os.path.join(MODEL_DIR, "texts_and_years.json")
 # ---------------------------------
 # Model names
 # ---------------------------------
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-SUMMARISER_MODEL = "t5-small"
+EMBEDDING_MODEL = "all-MiniLM-L6-v2" # rebuild if this is changed
+SUMMARISER_MODEL = "t5-base" # t5-small also an option (no need to rebuild switching these)
 
 # ---------------------------------
 # Retrieval settings
 # ---------------------------------
-TOP_K = 10
+TOP_K = 100
 
 # ---------------------------------
 # Aviation-themed messages

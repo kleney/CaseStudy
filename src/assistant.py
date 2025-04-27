@@ -24,7 +24,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="transformers.pyt
 # Function to retrieve most relevant chunks 
 # of text related to user query
 # --------------------------------------------------
-def ask_question(model, index, texts, years, query, top_k=10, verbose=False):
+def ask_question(model, index, texts, years, query, top_k=TOP_K, verbose=False):
 
     query_embedding = model.encode([query], convert_to_numpy=True)
 
