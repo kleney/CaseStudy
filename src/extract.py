@@ -32,7 +32,7 @@ def extract_text_from_pdfs(pdf_dir):
             text = page.get_text()
             text = text.replace("-\n", "")  # Fix hyphenated line breaks
             text = text.replace("\n", " ")  # Replace hard newlines with space
-            full_text += text + "\n\n"     # Simulate paragraph spacing between pages
+            full_text += text + "\n\n"      # Simulate paragraph spacing between pages
 
         # Chunk the cleaned text
         split_chunks = split_into_chunks(full_text, max_length=1000)
