@@ -9,7 +9,7 @@ Project to analyse IATA Annual Reviews to identify trends and opportunities in t
 - `models/`: Storage of BERTopic (keyword trends) and FAISS (assistant) models
 - `notebooks/`: Interactive walkthrough with training and optimisation of keyword trend models and visualisations of results
 - `outputs/`: Plots and other analysis outputs
-- `src/`: Scripts for data extraction and semantic search assistant. Helper scripts in utils
+- `src/`: Scripts for data extraction and RAG assistant. Helper scripts in utils
 
 
 ## Quick start
@@ -123,7 +123,7 @@ python src/assistant.py --rebuild
 python src/assistant.py -v --rebuild
 ```
 
-Example prompts are provided in example_prompts.txt
+Example prompts are provided in ```example_prompts.txt```
 
 #### How it works:
 The workflow supports two operational modes:
