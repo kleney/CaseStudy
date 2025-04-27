@@ -121,10 +121,9 @@ Usage:
 python src/simple_keyword_analysis.py
 ```
 
-## Future improvements
+## Future improvements to the assistant
 
-* Improve summarisation quality by upgrading to a larger model (e.g., T5-base or Pegasus)
+* Dynamic distance-based decision on the number of documents to summarise instead of fixed number (TOP_K variable)
 * Add metadata-based filtering (e.g., year, topic) to refine search results further
-* Introduce multi-turn conversational memory for more interactive Q&A
-* Deploy as a web application with an interactive front-end (e.g., Streamlit)
+* Deploy as a web application with an interactive front-end to improve user experience
 * Fine-tune the embedding model on aviation-specific documents for improved retrieval quality

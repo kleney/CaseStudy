@@ -33,7 +33,8 @@ SUMMARISER_MODEL = "t5-base" # t5-small also an option (no need to rebuild switc
 # ---------------------------------
 # Retrieval settings
 # ---------------------------------
-TOP_K = 100
+TOP_K = 10 # Number of "top matches" to pass to function that evaluates how many text snippets should be summarised
+THRESHOLD = 0.1 # "Gap" setting for determining cut-off point for clustering of text snippets
 
 # ---------------------------------
 # Aviation-themed messages
