@@ -25,10 +25,16 @@ INDEX_FILE = os.path.join(MODEL_DIR, "faiss_index.idx")
 TEXTS_FILE = os.path.join(MODEL_DIR, "texts_and_years.json")
 
 # ---------------------------------
+# Run in RAG or Retrieval-only mode
+# ---------------------------------
+RAG_MODE = True
+
+# ---------------------------------
 # Model names
 # ---------------------------------
 EMBEDDING_MODEL = "all-MiniLM-L6-v2" # rebuild if this is changed
 SUMMARISER_MODEL = "t5-base" # t5-small also an option (no need to rebuild switching these)
+RAG_MODEL = "gpt-3.5-turbo" # Requires setting up an OpenAI API key in your system and an OpenAI account
 
 # ---------------------------------
 # Retrieval settings

@@ -79,10 +79,34 @@ Outputs:
 
 ```src/assistant.py```
 
-The assistant allows users to ask semantic questions about aviation industry trends, sustainability, passenger rights, cargo, business opportunities, and more.  
-It retrieves the most relevant information from pre-embedded documents and summarises the results into a concise, human-readable answer.
+The assistant allows users to ask questions about aviation industry trends, sustainability, passenger rights, cargo, business opportunities, and more. It retrieves the most relevant information from pre-embedded documents and supports answering questions based on semantic search and Retrieval-Augmented Generation (RAG).
 
-Usage:
+- **Semantic Retrieval:** Queries are embedded and matched against aviation industry reports using FAISS.
+- **RAG Generation:** Retrieved contexts are sent to an LLM (e.g., OpenAI GPT-3.5) to generate answers.
+
+The mode is set via the ```RAG_MODE``` variable in ```src/assistant_config.py```
+
+#### RAG setup prerequisites
+
+To use the RAG functionality, you must have an OpenAI API key and active paid credits for OpenAI API access.
+
+**OpenAI API key**
+1. Generate your API key from [OpenAI Platform](https://platform.openai.com/account/api-keys).
+2. Set it as an environment variable:
+
+```bash
+export OPENAI_API_KEY="your-secret-key"
+```
+Optionally, add it permanently to your ```~/.bashrc``` or ```~/.zshrc```.
+
+**API credit**
+1. Go to the [OpenAI billing page](https://platform.openai.com/account/billing/overview) and give Sam Altman some of your hard-earned cash.
+
+#### Configuration
+
+All configurables, folder paths, model choices, and whether to run in RAG or retrieval-only mode, are set in src/assistant_config.py.  
+
+#### Usage:
 
 ```python src/assistant.py```
 
@@ -99,18 +123,37 @@ python src/assistant.py --rebuild
 python src/assistant.py -v --rebuild
 ```
 
-Example prompts provided in example_prompts.txt
+Example prompts are provided in example_prompts.txt
 
 #### How it works:
-* Embeds document chunks using a SentenceTransformer model (all-MiniLM-L6-v2).
-* Builds a FAISS index for efficient semantic similarity search.
-* On user query:
-   * Retrieves the top relevant documents.
-   * Sorts results by most recent information first.
-   * Summarises retrieved texts using a T5-small summariser.
-* Supports forced rebuilds
+The workflow supports two operational modes:
 
-## Simple keyword analysis
+#### 1. Retrieval-Only Mode
+
+- **Query embedding:**  The user's question is embedded using a SentenceTransformer model (all-MiniLM-L6-v2).
+- **Semantic search:**  FAISS is used to find the most relevant text chunks from the indexed documents.
+- **Summarisation:**  Retrieved chunks are summarised using a lightweight text summarisation model (t5-base) to generate an answer.
+
+**Use case:**  When no OpenAI API key is available, or when a pure retrieval-based summary is preferred.
+
+#### 2. Retrieval-Augmented Generation (RAG) Mode
+
+- **Query embedding and retrieval:** Same as in retrieval-only mode — semantic search finds the most relevant text chunks.
+- **Prompt building:** The retrieved chunks and the user’s question are combined into a prompt.
+- **OpenAI API call:** The prompt is sent to an LLM (GPT-3.5 Turbo) via OpenAI’s API to generate a context-aware answer.
+- **Fallback handling:** If the OpenAI API key is missing the assistant automatically switches back to retrieval-only mode without crashing.
+
+#### Future improvements to the assistant
+
+- Develop a lightweight web UI
+- Enhance retrieval with cross-encoder re-ranking.
+- Enable multi-hop reasoning for complex queries.
+- Add metadata-based filtering (e.g., year, topic) to refine search results further
+- Fine-tune the embedding model on aviation-specific documents for improved retrieval quality
+- Include citations in generated answers.
+
+
+## Extra: Simple keyword analysis
 
 ```src/simple_keyword_analysis.py``` or ```notebooks/simple_keyword_analysis.ipynb```
 
@@ -120,10 +163,3 @@ Usage:
 ```
 python src/simple_keyword_analysis.py
 ```
-
-## Future improvements to the assistant
-
-* Dynamic distance-based decision on the number of documents to summarise instead of fixed number (TOP_K variable)
-* Add metadata-based filtering (e.g., year, topic) to refine search results further
-* Deploy as a web application with an interactive front-end to improve user experience
-* Fine-tune the embedding model on aviation-specific documents for improved retrieval quality

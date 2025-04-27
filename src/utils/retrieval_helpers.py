@@ -1,80 +1,11 @@
 # ==================================================================
-# Helper functions for assistant.py
+# Helper functions for retrieval mode of assistant.py
 # Author: Katharine Leney, April 2025
 # ==================================================================
 
-import os
-import json
-import faiss
 import numpy as np
-from tqdm import tqdm
 from transformers import pipeline
-from assistant_config import CHUNKS_FILE, INDEX_FILE, TEXTS_FILE, SUMMARISER_MODEL, THRESHOLD
-
-
-# --------------------------------------------------
-# Load data/chunks.json file
-# (produced by src/extract.py)
-# --------------------------------------------------
-def load_chunks(filepath):
-    with open(filepath, "r") as f:
-        chunks = json.load(f)
-    texts = [chunk["text"] for chunk in chunks]
-    years = [chunk.get("year", 0) for chunk in chunks]
-    return texts, years
-
-# --------------------------------------------------
-# Load/build the model
-# --------------------------------------------------
-def load_or_build_index(model, force_rebuild=False):
-
-    index_exists = os.path.exists(INDEX_FILE)
-    texts_exists = os.path.exists(TEXTS_FILE)
-
-    # Build the model if the force_rebuild argument is set, 
-    # or if model files are not found.  
-    if force_rebuild or not (index_exists and texts_exists):
-        if force_rebuild:
-            print("Rebuild requested: deleting old model files if they exist...")
-        else:
-            print("Model files missing: building new FAISS index...")
-
-        # Delete old files if they exist
-        try:
-            if os.path.exists(INDEX_FILE):
-                os.remove(INDEX_FILE)
-            if os.path.exists(TEXTS_FILE):
-                os.remove(TEXTS_FILE)
-        except Exception as e:
-            print(f"Warning: problem deleting old files: {e}")
-
-        # Build from scratch
-        texts, years = load_chunks(CHUNKS_FILE)
-        embeddings = []
-        for text in tqdm(texts, desc="Embedding texts"):
-            embeddings.append(model.encode(text, convert_to_numpy=True))
-        embeddings = np.vstack(embeddings)
-
-        dimension = embeddings.shape[1]
-        index = faiss.IndexFlatL2(dimension)
-        index.add(embeddings)
-
-        # Write faiss_index.idx and texts_and_years.json to
-        # models/assistant directory.
-        faiss.write_index(index, INDEX_FILE)
-        with open(TEXTS_FILE, "w") as f:
-            json.dump([{"text": t, "year": y} for t, y in zip(texts, years)], f)
-
-    # Otherwise, load the existing model.
-    else:
-        print("Loading existing FAISS index and texts...")
-        index = faiss.read_index(INDEX_FILE)
-        with open(TEXTS_FILE, "r") as f:
-            saved = json.load(f)
-        texts = [item["text"] for item in saved]
-        years = [item["year"] for item in saved]
-
-    return index, texts, years
+from assistant_config import SUMMARISER_MODEL, THRESHOLD, TOP_K
 
 # --------------------------------------------------
 # Function to dynamically determine optimal number
@@ -95,6 +26,48 @@ def dynamic_top_k(distances, threshold=THRESHOLD):
     #print("No large gap found. Keeping all ", len(distances), "matches")
     return len(distances)
 
+
+# --------------------------------------------------
+# Function to retrieve most relevant chunks 
+# of text related to user query
+# --------------------------------------------------
+
+def ask_question(model, index, texts, years, query, top_k=TOP_K, verbose=False):
+
+    query_embedding = model.encode([query], convert_to_numpy=True)
+
+    # D = distance (similarity) scores between query and top_n matches
+    # I = Indices of the top_n closest matches to the query
+    # Arrays, with shape (number of queries (1!), top_n)
+    D, I = index.search(query_embedding, top_k)
+
+    # Pair distance, text, and year
+    results = [(dist, texts[idx], years[idx]) for idx, dist in zip(I[0], D[0])]
+    
+    # Sort by distance (lower = better match)
+    results = sorted(results, key=lambda x: x[0])
+
+    # Dynamically decide how many matches to keep
+    # based on distance gap between elements
+    dynamic_decision = True
+    if dynamic_decision :
+        selected_k = dynamic_top_k(D[0])
+
+        # Select top selected_k results
+        D = D[:, :selected_k]
+        I = I[:, :selected_k]
+
+    # If verbose mode, print the distance, year, and text snippet of top 5 matches.
+    if verbose:
+        print("\nTop Matches (Distance Scores):")
+        for rank, (dist, text, year) in enumerate(results[:D[0].size], start=1):
+            snippet = text[:50].replace('\n', ' ').strip() + ("..." if len(text) > 50 else "")
+            print(f"{rank}. Distance: {dist:.4f} | Year: {year} | Text Snippet: \"{snippet}\"")
+
+    # Return just (text, year) to the summariser
+    cleaned_results = [(text, year) for _, text, year in results]
+
+    return cleaned_results
 
 # --------------------------------------------------
 # Load a lightweight summarisation model (T5-small) 

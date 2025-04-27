@@ -1,9 +1,12 @@
 # ==================================================================
-# RAG assistant to answer questions about opportunities in aviation
+# RAG (or retrieval-only) assistant to answer questions about 
+# opportunities in aviation.
 # Usage:
 #    python src/assistant.py
 #        -v | --verbose : verbose mode
 #        -rebuild : forces rebuild of model
+# Configure in src/assistant_config.py
+# Helper functions in src/utils/assistant_utils.py and src/utils/rag_helper.py
 #
 # Author: Katharine Leney, April 2025
 # ==================================================================
@@ -12,56 +15,15 @@ from sentence_transformers import SentenceTransformer
 import warnings
 import random
 import argparse
-from utils.assistant_utils import load_summariser, summarise_texts, load_or_build_index, dynamic_top_k
-from assistant_config import EMBEDDING_MODEL, TOP_K, TAKEOFF_MESSAGES, EXIT_MESSAGES
+import os
+from assistant_config import EMBEDDING_MODEL, TOP_K, TAKEOFF_MESSAGES, EXIT_MESSAGES, RAG_MODE
+from utils.assistant_helpers import load_or_build_index
+from utils.retrieval_helpers import load_summariser, summarise_texts, ask_question
+from utils.rag_helpers import handle_query_with_rag
 
 # Suppress annoying (but harmless!) transformer warnings
 # Investigate this more later...
 warnings.filterwarnings("ignore", category=UserWarning, module="transformers.pytorch_utils")
-
-
-# --------------------------------------------------
-# Function to retrieve most relevant chunks 
-# of text related to user query
-# --------------------------------------------------
-
-def ask_question(model, index, texts, years, query, top_k=TOP_K, verbose=False):
-
-    query_embedding = model.encode([query], convert_to_numpy=True)
-
-    # D = distance (similarity) scores between query and top_n matches
-    # I = Indices of the top_n closest matches to the query
-    # Arrays, with shape (number of queries (1!), top_n)
-    D, I = index.search(query_embedding, top_k)
-
-    # Pair distance, text, and year
-    results = [(dist, texts[idx], years[idx]) for idx, dist in zip(I[0], D[0])]
-    
-    # Sort by distance (lower = better match)
-    results = sorted(results, key=lambda x: x[0])
-
-    # Dynamically decide how many matches to keep
-    # based on distance gap between elements
-    dynamic_decision = True
-    if dynamic_decision :
-        selected_k = dynamic_top_k(D[0])
-
-        # Select top selected_k results
-        D = D[:, :selected_k]
-        I = I[:, :selected_k]
-
-    # If verbose mode, print the distance, year, and text snippet of top 5 matches.
-    if verbose:
-        print("\nTop Matches (Distance Scores):")
-        for rank, (dist, text, year) in enumerate(results[:D[0].size], start=1):
-            snippet = text[:50].replace('\n', ' ').strip() + ("..." if len(text) > 50 else "")
-            print(f"{rank}. Distance: {dist:.4f} | Year: {year} | Text Snippet: \"{snippet}\"")
-
-    # Return just (text, year) to the summariser
-    cleaned_results = [(text, year) for _, text, year in results]
-
-    return cleaned_results
-
 
 # ---------------------------------
 # Main assistant loop
@@ -80,7 +42,17 @@ def main():
     print("\nLoading models and data...")
     model = SentenceTransformer(EMBEDDING_MODEL)
     index, texts, years = load_or_build_index(model, force_rebuild=force_rebuild)
-    summariser = load_summariser()
+    #summariser = load_summariser()
+
+    # Check if the OpenAI key is set if the user is in RAG mode
+    # (doesn't help with checking paid credits... come back to this)
+    global RAG_MODE  # allow us to modify RAG_MODE if needed
+    if RAG_MODE :
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            print("\n[Error] RAG mode selected but no OpenAI API key found.")
+            print("[Action] Switching to retrieval mode.\n")
+            RAG_MODE = False
 
     print("\n" + random.choice(TAKEOFF_MESSAGES))
     while True:
@@ -89,9 +61,15 @@ def main():
             print("\n" + random.choice(EXIT_MESSAGES))
             break
 
-        results = ask_question(model, index, texts, years, query, top_k=TOP_K, verbose=verbose_mode)
-        retrieved_texts = [text for text, year in results]
-        answer = summarise_texts(retrieved_texts, summariser)
+        # If RAG_MODE is enabled, use that, otherwise revert to
+        # the retrieval-only method using the summariser
+        if RAG_MODE :
+            answer = handle_query_with_rag(query, model, index, texts)
+        else :
+            summariser = load_summariser()
+            results = ask_question(model, index, texts, years, query, top_k=TOP_K, verbose=verbose_mode)
+            retrieved_texts = [text for text, year in results]
+            answer = summarise_texts(retrieved_texts, summariser)
 
         print("\n===== Assistant's Answer =====\n")
         print(answer)
