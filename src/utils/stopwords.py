@@ -5,7 +5,8 @@ from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
 iata_stopwords = [
     "sky", "flight", "air", "aviation", "iata", "sector", "industry",
     "annual", "review", "general", "director", "transport", "association",
-    "chief", "executive", "officer", "bisignani", "giovanni", "ceo"
+    "chief", "executive", "officer", "bisignani", "giovanni", "ceo",
+    "board", "governor", "governors"
 ]
 months = [
     "january", "february", "march", "april", "may", "june",
