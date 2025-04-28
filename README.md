@@ -24,6 +24,8 @@ conda activate iata
 python -m spacy download en_core_web_sm # download and install the small English language model "en_core_web_sm"
 ```
 
+<small>*N.B. ```environment.yml``` captures the working state as of April 2025 and was updated in reponse to VSCode updates that broke dependencies. It includes all required dependencies for the project but has not been cleaned. Some platform-specific packages may be present but they do not affect cross-platform compatibility. The previous environment file ```old_environment.yml``` is included for completeness.*</small>
+
 ###### Subsequent times
 
 ```
