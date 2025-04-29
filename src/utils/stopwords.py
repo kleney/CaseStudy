@@ -8,6 +8,7 @@ iata_stopwords = [
     "chief", "executive", "officer", "bisignani", "giovanni", "ceo",
     "board", "governor", "governors", "chairman", "president", "mr", "ms", "miss", "mrs", "dr",
     "airlines", "airline", "business", "businesses", "airways", "airway",
+    "representing", "representatives", "representative", "fax", "tel"
 ]
 months = [
     "january", "february", "march", "april", "may", "june",

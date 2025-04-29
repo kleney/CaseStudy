@@ -6,224 +6,145 @@
 #   - Low size + High growth = Medium Priority
 #   - Low size + Low growth = Low Priority
 #
-# Author: Katharine Leney, April 2025
+# Now supports using externally generated clean_labels mapping
+# to populate the "Trend" column.
+# Author: Katharine Leney, April 2025 (updated)
 # ============================================================
 
 import pandas as pd
 
-def generate_opportunity_table(topic_model, topics_over_time_df, top_n_topics=None):
+def generate_opportunity_table(topic_model, topics_over_time_df, clean_labels=None, top_n_topics=None):
     """
-    Match BERTopic discovered topics to business opportunities and recommend priorities based on size and growth.
-
-    Args:
-        topic_model (BERTopic): A fitted BERTopic model.
-        topics_over_time_df (DataFrame): Output from model.topics_over_time().
-        top_n_topics (int, optional): Limit to top N topics by size.
-
+    Parameters:
+    - topic_model: trained topic model (with or without cleaned labels applied).
+    - topics_over_time_df: DataFrame with columns ["Topic", "Frequency", ...] over time.
+    - clean_labels: optional dict mapping topic_id -> cleaned label (from generate_clean_labels).
+    - top_n_topics: if provided, limit to the top N topics by count.
     Returns:
-        tuple: (matched_opportunities_df, unmatched_topics_list)
+    - matched_df: DataFrame of matched business opportunities with Trend set to cleaned label (if provided).
+    - unmatched_topics: list of topic labels that did not match any business opportunity.
     """
     # -------------------------------------------------
     # Define business opportunity mappings 
-    # (expand as needed!)
     # -------------------------------------------------
     business_opportunities = {
-        "Growth": {
-            "Implication": "Strong recovery in air travel post-pandemic",
-            "Opportunity": "Expand network capacity and optimize route planning",
-        },
-        "Safety": {
-            "Implication": "Continued industry focus on safety standards",
-            "Opportunity": "Invest in IOSA certification and safety audits",
-        },
-        "Emissions": {
-            "Implication": "Increasing pressure for environmental responsibility",
-            "Opportunity": "Adopt Sustainable Aviation Fuels (SAF) and carbon offset programs",
-        },
-        "Airport": {
-            "Implication": "Growing airport-related fees and costs",
-            "Opportunity": "Negotiate airport charges and improve operational efficiency",
-        },
-        "Security": {
-            "Implication": "Passenger data security and travel security concerns",
-            "Opportunity": "Enhance digital identity management and passenger screening",
-        },
-        "Settlement": {
-            "Implication": "Changes in financial settlement systems (BSP, etc.)",
-            "Opportunity": "Optimize settlement systems and implement faster payment technologies",
-        },
-        "Cargo": {
-            "Implication": "Continued strength in air cargo and freight demand",
-            "Opportunity": "Expand cargo services and invest in logistics technology",
-        },
-        "New Distribution Capability": {
-            "Implication": "Shift to direct airline distribution models",
-            "Opportunity": "Adopt NDC-compliant sales and order management platforms",
-        },
-        "Regulation": {
-            "Implication": "Tighter regulatory environment for passenger rights",
-            "Opportunity": "Implement compliance monitoring and customer care improvements",
-        },
-        "China": {
-            "Implication": "Strategic importance of Chinese and Asia-Pacific aviation markets",
-            "Opportunity": "Develop partnerships and routes in China and APAC regions",
-        },
-        "Data": {
-            "Implication": "Need for better data management and business intelligence",
-            "Opportunity": "Invest in data analytics and AI-based decision systems",
-        },
-        "Tax": {
-            "Implication": "Government pressure via taxes on aviation",
-            "Opportunity": "Engage in advocacy and optimize tax planning strategies",
-        },
-        "Training": {
-            "Implication": "Ongoing need for aviation training and upskilling",
-            "Opportunity": "Expand training programs and digital learning platforms",
-        },
-        "Slot": {
-            "Implication": "Airport slot scarcity impacting capacity",
-            "Opportunity": "Optimize slot management and invest in slot trading systems",
-        },
-        "Board": {
-            "Implication": "Board representation and governance changes",
-            "Opportunity": "Strengthen board leadership and stakeholder engagement",
-        },
-        "Commercial": {
-            "Implication": "Need for revenue diversification",
-            "Opportunity": "Develop new commercial partnerships and ancillary revenue streams",
-        },
-        "Baggage": {
-            "Implication": "Focus on passenger experience and baggage handling",
-            "Opportunity": "Invest in baggage tracking technology and self-service processes",
-        },
-        "Diversity": {
-            "Implication": "Industry-wide DEI (Diversity, Equity, Inclusion) pressure",
-            "Opportunity": "Strengthen diversity and inclusion initiatives",
-        },
-        "ID": {
-            "Implication": "Move towards digital identity and seamless travel",
-            "Opportunity": "Implement biometric and digital ID solutions",
-        },
-        "Lithium": {
-            "Implication": "Rising risks from transporting lithium batteries",
-            "Opportunity": "Strengthen dangerous goods handling protocols",
-        },
-        "Fuel": {
-            "Implication": "Volatility of jet fuel prices",
-            "Opportunity": "Implement fuel hedging strategies and optimize fuel efficiency",
-        },
-        "Bar-Coded Boarding Pass": {
-            "Implication": "Need for seamless, contactless boarding",
-            "Opportunity": "Implement BCBP standards across operations",
-        },
-        "Unruly": {
-            "Implication": "Rise in unruly passenger incidents",
-            "Opportunity": "Enhance crew training and incident management systems",
-        },
-        "Center of Excellence for Independent Validators": {
-            "Implication": "Importance of CEIV pharma and logistics certifications",
-            "Opportunity": "Expand into certified logistics (e.g., pharma transport)",
-        },
-        "Business": {
-            "Implication": "Organizational agility and change management",
-            "Opportunity": "Simplify business processes and accelerate change initiatives",
-        }
+        "Safety": {"Implication": "Ongoing emphasis on flight and operational safety across the industry",
+                   "Opportunity": "Invest in IOSA certification, risk management, and proactive safety programs"},
+        "Security": {"Implication": "Need for secure and seamless passenger identity and screening",
+                     "Opportunity": "Adopt biometric identity systems and enhance cybersecurity protocols"},
+        "Settlement": {"Implication": "Evolution of industry financial frameworks (e.g. BSP, CASS)",
+                       "Opportunity": "Upgrade payment systems and optimize cash flow through digital settlement"},
+        "Charges": {"Implication": "Rising airport and regulatory charges impacting airline margins",
+                    "Opportunity": "Advocate for transparency and collaborate on cost-efficiency initiatives"},
+        "Global": {"Implication": "Macro-level trends influencing aviation growth and resilience",
+                   "Opportunity": "Adapt strategy to respond to geopolitical, economic, and demographic shifts"},
+        "New Distribution Capability": {"Implication": "Digital transformation of airline retail and distribution",
+                                        "Opportunity": "Implement NDC to personalise offers and control distribution costs"},
+        "Baggage": {"Implication": "Passenger expectations for efficient baggage services",
+                     "Opportunity": "Introduce real-time tracking and self-service baggage solutions"},
+        "Cargo": {"Implication": "Cargo remains a strong revenue pillar post-pandemic",
+                   "Opportunity": "Expand dedicated cargo capacity and invest in digital freight platforms"},
+        "SAF": {"Implication": "Industry push for sustainable fuels to meet net-zero goals",
+                 "Opportunity": "Invest in SAF partnerships and explore supply chain integration"},
+        "Markets": {"Implication": "Shifting demand patterns and regional recovery trends",
+                     "Opportunity": "Refocus network planning on high-growth and underserved markets"},
+        "Covid-19": {"Implication": "Operational disruption and long-term resilience planning",
+                      "Opportunity": "Invest in flexible operating models and health safety protocols"},
+        "Diversity & Inclusion": {"Implication": "Stakeholder expectations for diverse and inclusive leadership",
+                                   "Opportunity": "Build diverse talent pipelines and track DEI performance"},
+        "Data": {"Implication": "Explosion of data-driven use cases in aviation",
+                       "Opportunity": "Adopt AI for predictive maintenance, dynamic pricing, and customer service"},
+        "Training": {"Implication": "Need to attract and upskill talent amid workforce shortages",
+                      "Opportunity": "Expand digital learning and modernise aviation training pathways"},
+        "Taxation": {"Implication": "Growing tax pressures from governments on aviation activities",
+                      "Opportunity": "Strengthen policy advocacy and evaluate operational tax exposures"},
+        "Frequent Flyer": {"Implication": "Loyalty programs remain key to customer retention and data",
+                             "Opportunity": "Modernise frequent flyer schemes and explore partnerships"},
+        "Infrastructure": {"Implication": "Airports and systems under strain from demand and sustainability targets",
+                            "Opportunity": "Partner on smart infrastructure projects and capacity investments"},
+        "Digital Identity": {"Implication": "IATA and governments moving toward digital travel credentials",
+                               "Opportunity": "Implement One ID and enhance digital onboarding processes"},
+        "Lithium Batteries": {"Implication": "Safety concerns around transporting lithium batteries",
+                                "Opportunity": "Strengthen dangerous goods training and handling procedures"},
+        "Unruly Passengers": {"Implication": "Rising number of in-flight disruptions",
+                                 "Opportunity": "Implement preventative policies and provide staff with de-escalation training"},
+        "CEIV Programs": {"Implication": "Rising demand for certified pharma, fresh, and live cargo services",
+                            "Opportunity": "Join CEIV programs and target high-value logistics niches"},
+        "Workforce & Culture": {"Implication": "Industry-wide focus on employee wellbeing and agility",
+                                  "Opportunity": "Create purpose-driven cultures and accelerate change adoption"},
     }
 
     # -------------------------------------------------
-    # Extract topic labels
+    # Extract topic info and counts
     # -------------------------------------------------
     topic_info = topic_model.get_topic_info()
-    # Exclude Topic = -1
-    topic_labels = topic_info.loc[topic_info["Topic"] != -1, ["Topic", "Name", "Count"]]
-
+    topic_df = topic_info.loc[topic_info["Topic"] != -1, ["Topic", "Name", "Count"]].copy()
     if top_n_topics is not None:
-        topic_labels = topic_labels.nlargest(top_n_topics, "Count")
-
-    # Total number of topics
-    total_count = topic_labels["Count"].sum()   
+        topic_df = topic_df.nlargest(top_n_topics, "Count")
+    total_count = topic_df["Count"].sum()
 
     # -------------------------------------------------
-    # Calculate growth rates from topics_over_time
-    # ***VERY BASIC*** estimate, calculated as:
-    #       latest_frequency - earliest_frequency
-    # Could be improved later :-)
+    # Compute topic growth
     # -------------------------------------------------
     growth_dict = {}
-
-    for topic_id in topic_labels["Topic"]:
-        topic_data = topics_over_time_df[topics_over_time_df["Topic"] == topic_id]
-        if topic_data.empty:
+    for tid in topic_df["Topic"]:
+        subset = topics_over_time_df[topics_over_time_df["Topic"] == tid]
+        if subset.empty:
             growth = 0
         else:
-            # Simple growth: compare final frequency vs initial frequency
-            growth = topic_data.iloc[-1]["Frequency"] - topic_data.iloc[0]["Frequency"]
-        growth_dict[topic_id] = growth
+            growth = subset.iloc[-1]["Frequency"] - subset.iloc[0]["Frequency"]
+        growth_dict[tid] = growth
 
     # -------------------------------------------------
-    # Match detected topics to business opportunities
-    # ------------------------------------------------- 
-    matched_opportunities = []
-    unmatched_topics = []
-
-    for _, row in topic_labels.iterrows():
-        topic_id = row["Topic"]
-        label = row["Name"]
+    # Match to business opportunities
+    # -------------------------------------------------
+    matched = []
+    unmatched = []
+    for _, row in topic_df.iterrows():
+        tid = row["Topic"]
+        raw_label = row["Name"]
+        # Use cleaned label if provided, else fall back to raw
+        trend_label = clean_labels.get(tid, raw_label) if clean_labels else raw_label
         size = row["Count"]
-        fraction = size / total_count
-        growth = growth_dict.get(topic_id, 0)
+        frac = size / total_count
+        growth = growth_dict.get(tid, 0)
 
-        matched = False
+        found = False
         for keyword, info in business_opportunities.items():
-            if keyword.lower() in label.lower():
-                # Recommend priority based on keyword fraction and growth
-                #   - High keyword fraction + High growth = High Priority
-                #   - High keyword fraction + Low growth = Medium Priority
-                #   - Low keyword fraction + High growth = Medium Priority
-                #   - Low keyword + Low growth = Low Priority
-
-                #print(keyword, " : ", fraction, " : ", growth)
-
-                if fraction > 0.02 and growth > 5:
-                    priority = "High"
-                elif (fraction > 0.02 and growth > 0) or growth > 1:
-                    priority = "Medium"
+            if keyword.lower() in raw_label.lower():
+                # Priority logic
+                if frac > 0.02 and growth > 5:
+                    prio = "High"
+                elif (frac > 0.02 and growth > 0) or growth > 1:
+                    prio = "Medium"
                 else:
-                    priority = "Low"
+                    prio = "Low"
 
-                matched_opportunities.append({
-                    "Trend": keyword,
-                    "Detected Label": label,
+                matched.append({
+                    "Trend": trend_label,
+                    "Detected Label": raw_label,
                     "Implication": info["Implication"],
                     "Ongoing Activity": info["Opportunity"],
-                    "Priority (Recommended)": priority,
-                    "Keyword Fraction (%)": round(fraction * 100, 2),
+                    "Priority (Recommended)": prio,
+                    "Keyword Fraction (%)": round(frac * 100, 2),
                     "Topic Growth": round(growth, 4)
                 })
-                matched = True
+                found = True
                 break
-
-        if not matched:
-            unmatched_topics.append(label)
+        if not found:
+            unmatched.append(raw_label)
 
     # -------------------------------------------------
-    # Output
+    # Final DataFrame and sorting
     # -------------------------------------------------
-    matched_df = pd.DataFrame(matched_opportunities)
-
-    if matched_df.empty:
+    df = pd.DataFrame(matched)
+    if df.empty:
         print("\n WARNING: No matching business opportunities found for detected topics.")
         print("\t ==> Check if topic labels and business_opportunities mapping is aligned.\n")
     else:
-        # Define custom priority ordering
-        priority_order = {"High": 0, "Medium": 1, "Low": 2, "To be assessed": 3}
+        order = {"High": 0, "Medium": 1, "Low": 2, "To be assessed": 3}
+        df["_prio"] = df["Priority (Recommended)"].map(order)
+        df = df.sort_values(by=["_prio", "Keyword Fraction (%)"], ascending=[True, False])
+        df = df.drop(columns=["_prio"]).reset_index(drop=True)
 
-        # Map priority to a sortable number
-        matched_df["Priority_Rank"] = matched_df["Priority (Recommended)"].map(priority_order)
-
-        matched_df = matched_df.sort_values(
-            by=["Priority_Rank", "Keyword Fraction (%)"],
-            ascending=[True, False]  # Priority ascending (0,1,2), Fraction descending
-        ).drop(columns=["Priority_Rank"]).reset_index(drop=True)
-
-    return matched_df, unmatched_topics
+    return df, unmatched
