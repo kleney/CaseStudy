@@ -1,4 +1,4 @@
-from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 # Expand list of stopwords to remove industry-specific noise
 # and months of the year
@@ -6,7 +6,7 @@ iata_stopwords = [
     "sky", "flight", "air", "aviation", "iata", "sector", "industry",
     "annual", "review", "general", "director", "transport", "association",
     "chief", "executive", "officer", "bisignani", "giovanni", "ceo",
-    "board", "governor", "governors"
+    "board", "governor", "governors", "chairman", "president"
 ]
 months = [
     "january", "february", "march", "april", "may", "june",

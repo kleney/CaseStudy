@@ -84,7 +84,7 @@ Outputs:
 The assistant allows users to ask questions about aviation industry trends, sustainability, passenger rights, cargo, business opportunities, and more. It retrieves the most relevant information from pre-embedded documents and supports answering questions based on semantic search and Retrieval-Augmented Generation (RAG).
 
 - **Semantic Retrieval:** Queries are embedded and matched against aviation industry reports using FAISS.
-- **RAG Generation:** Retrieved contexts are sent to an LLM (e.g., OpenAI GPT-3.5) to generate answers.
+- **RAG Generation:** Retrieved contexts are sent to an LLM (OpenAI gpt-3.5-turbo) to generate answers.
 
 The mode is set via the ```RAG_MODE``` variable in ```src/assistant_config.py```
 

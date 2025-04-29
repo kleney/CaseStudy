@@ -181,7 +181,10 @@ def generate_opportunity_table(topic_model, topics_over_time_df, top_n_topics=No
                 #   - High keyword fraction + Low growth = Medium Priority
                 #   - Low keyword fraction + High growth = Medium Priority
                 #   - Low keyword + Low growth = Low Priority
-                if fraction > 0.1 and growth > 0.01:
+
+                #print(keyword, " : ", fraction, " : ", growth)
+
+                if fraction > 0.05 and growth > 5:
                     priority = "High"
                 elif fraction > 0.05 or growth > 0.01:
                     priority = "Medium"

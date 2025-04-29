@@ -1,19 +1,19 @@
 
+# ================================================================
+# Processes all pdf files in a given folder, applies some basic
+# cleaning, splits them into chunks of max 1000 characters
+# following the paragraph structure of the original text and 
+# writes out a json file (data/chunks.json) for further 
+# processing and analysis.
+# Author: Katharine Leney, April 2025
+# ================================================================
+
 import os
 import fitz  # from PyMuPDF, to open and extract text from pdf files
 import json
 import re    # regular expressions to extract years from filenames
 import sys
 import unicodedata
-from sklearn.feature_extraction.text import CountVectorizer
-
-# ================================================================
-# Processes all pdf files in a given folder, to split them into
-# chunks of max 1000 characters, following paragraph structure of 
-# original text and write out a json file (data/chunks.json)
-# for further processing and analysis.
-# Author: Katharine Leney, April 2025
-# ================================================================
 
 _PUNCT_CHARS = {chr(i) for i in range(sys.maxunicode)
                 if unicodedata.category(chr(i)).startswith("P")}
