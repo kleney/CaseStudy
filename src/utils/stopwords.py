@@ -6,7 +6,8 @@ iata_stopwords = [
     "sky", "flight", "air", "aviation", "iata", "sector", "industry",
     "annual", "review", "general", "director", "transport", "association",
     "chief", "executive", "officer", "bisignani", "giovanni", "ceo",
-    "board", "governor", "governors", "chairman", "president"
+    "board", "governor", "governors", "chairman", "president", "mr", "ms", "miss", "mrs", "dr",
+    "airlines", "airline", "business", "businesses", "airways", "airway",
 ]
 months = [
     "january", "february", "march", "april", "may", "june",

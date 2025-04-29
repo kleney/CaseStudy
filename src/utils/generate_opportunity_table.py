@@ -184,9 +184,9 @@ def generate_opportunity_table(topic_model, topics_over_time_df, top_n_topics=No
 
                 #print(keyword, " : ", fraction, " : ", growth)
 
-                if fraction > 0.05 and growth > 5:
+                if fraction > 0.02 and growth > 5:
                     priority = "High"
-                elif fraction > 0.05 or growth > 0.01:
+                elif (fraction > 0.02 and growth > 0) or growth > 1:
                     priority = "Medium"
                 else:
                     priority = "Low"
@@ -195,7 +195,7 @@ def generate_opportunity_table(topic_model, topics_over_time_df, top_n_topics=No
                     "Trend": keyword,
                     "Detected Label": label,
                     "Implication": info["Implication"],
-                    "Opportunity": info["Opportunity"],
+                    "Ongoing Activity": info["Opportunity"],
                     "Priority (Recommended)": priority,
                     "Keyword Fraction (%)": round(fraction * 100, 2),
                     "Topic Growth": round(growth, 4)

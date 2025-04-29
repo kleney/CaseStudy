@@ -59,12 +59,5 @@ def get_top_topics(filtered_topics, top_k=10):
     avg_topic_freq = yearly_topic_freq.mean(axis=0)
 
     # Select top_k topics
-    #top_topics = avg_topic_freq.sort_values(ascending=False).head(top_k).index.tolist()
-    return avg_topic_freq.sort_values(ascending=False).head(top_k).index.tolist()
-
-    #topic_freq = (
-    #    filtered_topics["Topic"]
-    #    .value_counts(normalize=True) # True = relative frequency, False = absolute number of chunks which can vary by year... 
-    #    .sort_values(ascending=False)
-    #)
-    #return topic_freq.head(top_k).index.tolist()
+    top_topics = avg_topic_freq.sort_values(ascending=False).head(top_k).index.tolist()
+    return top_topics
