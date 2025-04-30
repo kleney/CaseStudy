@@ -14,7 +14,7 @@ custom_map = {
     "regulation_rights_passenger_rights_regulations": "Passenger Rights Regulations",
     "markets_growth_load_premium": "Markets Growth",
     "covid-19_health_testing_travel": "COVID‑19",
-    "china_cargo_latam_express": "China",
+    "china_cargo_latam_express": "Emerging Economies",
     "tax_taxes_taxation_government": "Tax",
     "data_intelligence_consulting_cargois": "Data & AI",
     "training_itdi_strategic_courses": "Training",

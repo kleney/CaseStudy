@@ -37,6 +37,14 @@ def generate_clean_labels(topic_model, top_n_words=1):
         else:
             suffix = raw_name
 
+        # Horrible temporary hack to clear some junk topics
+        # To be fixed with better PDF text extraction
+        if ("tam_sia_mauritius_niugini" in suffix) or ("global_governments_important_board" in suffix) or ("board_chair_southern_managing" in suffix):
+            print(f"Topic {topic_id} : {suffix} flagged as junk")
+            new_labels[topic_id] = ""
+            junk_topics.append(topic_id)
+            continue
+
         # Check for any custom_map substring match
         for key, custom_label in custom_map.items():
             if key in suffix:

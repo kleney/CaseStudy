@@ -28,13 +28,64 @@ def generate_opportunity_table(topic_model, topics_over_time_df, clean_labels=No
     # -------------------------------------------------
     # Compute topic growth
     # -------------------------------------------------
+    #growth_dict = {}
+    #for tid in topic_df["Topic"]:
+    #    subset = topics_over_time_df[topics_over_time_df["Topic"] == tid]
+    #    if subset.empty:
+    #        growth = 0
+    #    else:
+    #        growth = subset.iloc[-1]["Frequency"] - subset.iloc[0]["Frequency"]
+    #    growth_dict[tid] = growth
+
+    # -------------------------------------------------
+    # Compute topic growth based on % share per year
+    # -------------------------------------------------
+    # 0) detect which columns to use
+    if "Year" in topics_over_time_df.columns:
+        time_col = "Year"
+    elif "year" in topics_over_time_df.columns:
+        time_col = "year"
+    else:
+        raise KeyError(
+            f"No 'Year' column found in topics_over_time_df; available: {topics_over_time_df.columns.tolist()}"
+        )
+
+    if "Frequency" in topics_over_time_df.columns:
+        value_col = "Frequency"
+    elif "Count" in topics_over_time_df.columns:
+        value_col = "Count"
+    else:
+        raise KeyError(
+            f"No 'Frequency' column found in topics_over_time_df; available: {topics_over_time_df.columns.tolist()}"
+        )
+
+    # 1) total keywords per year
+    year_totals = topics_over_time_df\
+        .groupby(time_col)[value_col]\
+        .sum()\
+        .to_dict()
+
+    # 2) compute pct‐point growth for each topic
     growth_dict = {}
     for tid in topic_df["Topic"]:
-        subset = topics_over_time_df[topics_over_time_df["Topic"] == tid]
+        subset = (
+            topics_over_time_df[topics_over_time_df["Topic"] == tid]
+            .sort_values(time_col)
+        )
         if subset.empty:
             growth = 0
         else:
-            growth = subset.iloc[-1]["Frequency"] - subset.iloc[0]["Frequency"]
+            first_year, last_year = subset.iloc[0][time_col], subset.iloc[-1][time_col]
+            first_val = subset.iloc[0][value_col]
+            last_val  = subset.iloc[-1][value_col]
+            # avoid zero‐division
+            if year_totals.get(first_year, 0) == 0 or year_totals.get(last_year, 0) == 0:
+                growth = 0
+            else:
+                growth = (
+                    last_val  / year_totals[last_year]
+                    - first_val / year_totals[first_year]
+                ) * 100
         growth_dict[tid] = growth
 
     # -------------------------------------------------
