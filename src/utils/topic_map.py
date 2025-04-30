@@ -24,11 +24,12 @@ custom_map = {
     "representing_group_klm_france": "Representing",
     "atm_airspace_european_nextgen": "Air Transport Market",
     "identity_id_digital_biometric": "Digital ID",
-    "diversity_inclusion_diversity_inclusion_female": "D&I",
+    "diversity_inclusion_diversity_inclusion_female": "Diversity & Inclusion",
     "ienva_waste_environmental_assessment": "IENVA",
     "fuel_jet_fuel_jet_supply": "Fuel",
     "oil_barrel_prices_fuel": "Oil Prices",
     "isago_ground_audits_audit": "ISAGO",
     "domestic_travel_rpks_international": "Domestic Travel",
-    "unruly": "Unruly Passengers"
+    "unruly": "Unruly Passengers",
+    "cargo_trade_growth_global": "Global Trade",
 }

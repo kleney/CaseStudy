@@ -12,67 +12,9 @@
 # ============================================================
 
 import pandas as pd
+from utils.opportunity_map import business_opportunities
 
 def generate_opportunity_table(topic_model, topics_over_time_df, clean_labels=None, top_n_topics=None):
-    """
-    Parameters:
-    - topic_model: trained topic model (with or without cleaned labels applied).
-    - topics_over_time_df: DataFrame with columns ["Topic", "Frequency", ...] over time.
-    - clean_labels: optional dict mapping topic_id -> cleaned label (from generate_clean_labels).
-    - top_n_topics: if provided, limit to the top N topics by count.
-    Returns:
-    - matched_df: DataFrame of matched business opportunities with Trend set to cleaned label (if provided).
-    - unmatched_topics: list of topic labels that did not match any business opportunity.
-    """
-    # -------------------------------------------------
-    # Define business opportunity mappings 
-    # -------------------------------------------------
-    business_opportunities = {
-        "Safety": {"Implication": "Ongoing emphasis on flight and operational safety across the industry",
-                   "Opportunity": "Invest in IOSA certification, risk management, and proactive safety programs"},
-        "Security": {"Implication": "Need for secure and seamless passenger identity and screening",
-                     "Opportunity": "Adopt biometric identity systems and enhance cybersecurity protocols"},
-        "Settlement": {"Implication": "Evolution of industry financial frameworks (e.g. BSP, CASS)",
-                       "Opportunity": "Upgrade payment systems and optimize cash flow through digital settlement"},
-        "Charges": {"Implication": "Rising airport and regulatory charges impacting airline margins",
-                    "Opportunity": "Advocate for transparency and collaborate on cost-efficiency initiatives"},
-        "Global": {"Implication": "Macro-level trends influencing aviation growth and resilience",
-                   "Opportunity": "Adapt strategy to respond to geopolitical, economic, and demographic shifts"},
-        "New Distribution Capability": {"Implication": "Digital transformation of airline retail and distribution",
-                                        "Opportunity": "Implement NDC to personalise offers and control distribution costs"},
-        "Baggage": {"Implication": "Passenger expectations for efficient baggage services",
-                     "Opportunity": "Introduce real-time tracking and self-service baggage solutions"},
-        "Cargo": {"Implication": "Cargo remains a strong revenue pillar post-pandemic",
-                   "Opportunity": "Expand dedicated cargo capacity and invest in digital freight platforms"},
-        "SAF": {"Implication": "Industry push for sustainable fuels to meet net-zero goals",
-                 "Opportunity": "Invest in SAF partnerships and explore supply chain integration"},
-        "Markets": {"Implication": "Shifting demand patterns and regional recovery trends",
-                     "Opportunity": "Refocus network planning on high-growth and underserved markets"},
-        "Covid-19": {"Implication": "Operational disruption and long-term resilience planning",
-                      "Opportunity": "Invest in flexible operating models and health safety protocols"},
-        "Diversity & Inclusion": {"Implication": "Stakeholder expectations for diverse and inclusive leadership",
-                                   "Opportunity": "Build diverse talent pipelines and track DEI performance"},
-        "Data": {"Implication": "Explosion of data-driven use cases in aviation",
-                       "Opportunity": "Adopt AI for predictive maintenance, dynamic pricing, and customer service"},
-        "Training": {"Implication": "Need to attract and upskill talent amid workforce shortages",
-                      "Opportunity": "Expand digital learning and modernise aviation training pathways"},
-        "Taxation": {"Implication": "Growing tax pressures from governments on aviation activities",
-                      "Opportunity": "Strengthen policy advocacy and evaluate operational tax exposures"},
-        "Frequent Flyer": {"Implication": "Loyalty programs remain key to customer retention and data",
-                             "Opportunity": "Modernise frequent flyer schemes and explore partnerships"},
-        "Infrastructure": {"Implication": "Airports and systems under strain from demand and sustainability targets",
-                            "Opportunity": "Partner on smart infrastructure projects and capacity investments"},
-        "Digital Identity": {"Implication": "IATA and governments moving toward digital travel credentials",
-                               "Opportunity": "Implement One ID and enhance digital onboarding processes"},
-        "Lithium Batteries": {"Implication": "Safety concerns around transporting lithium batteries",
-                                "Opportunity": "Strengthen dangerous goods training and handling procedures"},
-        "Unruly Passengers": {"Implication": "Rising number of in-flight disruptions",
-                                 "Opportunity": "Implement preventative policies and provide staff with de-escalation training"},
-        "CEIV Programs": {"Implication": "Rising demand for certified pharma, fresh, and live cargo services",
-                            "Opportunity": "Join CEIV programs and target high-value logistics niches"},
-        "Workforce & Culture": {"Implication": "Industry-wide focus on employee wellbeing and agility",
-                                  "Opportunity": "Create purpose-driven cultures and accelerate change adoption"},
-    }
 
     # -------------------------------------------------
     # Extract topic info and counts
